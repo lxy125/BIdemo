@@ -35,6 +35,9 @@ public class ChartQueryRequest extends PageRequest implements Serializable {
     private String chartType;
 
 
+    private  Long userId;
+
+
 
     private static final long serialVersionUID = 1L;
 }

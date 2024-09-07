@@ -16,7 +16,6 @@ import com.yupi.springbootinit.model.dto.chart.ChartQueryRequest;
 import com.yupi.springbootinit.model.dto.chart.ChartUpdateRequest;
 import com.yupi.springbootinit.model.entity.Chart;
 import com.yupi.springbootinit.model.entity.User;
-import com.yupi.springbootinit.model.vo.ChartVO;
 import com.yupi.springbootinit.service.ChartService;
 import com.yupi.springbootinit.service.UserService;
 import lombok.extern.slf4j.Slf4j;
