@@ -21,8 +21,8 @@ public class ChartUpdateRequest implements Serializable {
     /**
      * id
      */
-    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
+    private String name;
 
     /**
      * 分析目标
@@ -67,7 +67,7 @@ public class ChartUpdateRequest implements Serializable {
     /**
      * 是否删除
      */
-    @TableLogic
+
     private Integer isDelete;
 
     private static final long serialVersionUID = 1L;
