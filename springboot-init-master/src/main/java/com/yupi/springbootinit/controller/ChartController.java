@@ -319,8 +319,16 @@ public class ChartController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "图表类型不能为空");
         }
 
+        //用户输入
+        StringBuilder userInput  = new StringBuilder();
+        userInput.append("分析目标:").append(goal).append("\n");
+
+
+
+        //数据压缩
         String result = ExcelUtils.excelToCsv(multipartFile);
-        return ResultUtils.success(result);
+        userInput.append("数据:").append(result).append("\n");
+        return ResultUtils.success(userInput.toString());
 
 
 //
