@@ -1,7 +1,5 @@
 package com.yupi.springbootinit.controller;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.springbootinit.annotation.AuthCheck;
@@ -10,24 +8,20 @@ import com.yupi.springbootinit.common.DeleteRequest;
 import com.yupi.springbootinit.common.ErrorCode;
 import com.yupi.springbootinit.common.ResultUtils;
 import com.yupi.springbootinit.constant.CommonConstant;
-import com.yupi.springbootinit.constant.FileConstant;
 import com.yupi.springbootinit.constant.UserConstant;
 import com.yupi.springbootinit.exception.BusinessException;
 import com.yupi.springbootinit.exception.ThrowUtils;
 import com.yupi.springbootinit.model.dto.chart.*;
-import com.yupi.springbootinit.model.dto.file.UploadFileRequest;
-import com.yupi.springbootinit.model.dto.post.PostQueryRequest;
 import com.yupi.springbootinit.model.entity.Chart;
-import com.yupi.springbootinit.model.entity.Post;
 import com.yupi.springbootinit.model.entity.User;
-import com.yupi.springbootinit.model.enums.FileUploadBizEnum;
+import com.yupi.springbootinit.manager.AiManager;
+import com.yupi.springbootinit.model.vo.BiResponse;
 import com.yupi.springbootinit.service.ChartService;
 import com.yupi.springbootinit.service.UserService;
 import com.yupi.springbootinit.utils.ExcelUtils;
 import com.yupi.springbootinit.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -35,8 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.util.List;
 
 /**
  * 帖子接口
@@ -54,6 +46,9 @@ public class ChartController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private AiManager aiManager;
 
     // region 增删改查
 
@@ -300,8 +295,8 @@ public class ChartController {
      * @return
      */
     @PostMapping("/gen")
-    public BaseResponse<String> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
-                                             GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+    public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
+                                                 GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
 
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
@@ -319,16 +314,73 @@ public class ChartController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "图表类型不能为空");
         }
 
-        //用户输入
-        StringBuilder userInput  = new StringBuilder();
-        userInput.append("分析目标:").append(goal).append("\n");
+//        //用户输入
+//        StringBuilder userInput  = new StringBuilder();
+//        userInput.append("分析目标:").append(goal).append("\n");
+//
+//
+//
+//        //数据压缩
+//        String result = ExcelUtils.excelToCsv(multipartFile);
+//        userInput.append("数据:").append(result).append("\n");
 
 
 
-        //数据压缩
-        String result = ExcelUtils.excelToCsv(multipartFile);
-        userInput.append("数据:").append(result).append("\n");
-        return ResultUtils.success(userInput.toString());
+        // 通过response对象拿到用户id(必须登录才能使用)
+        User loginUser = userService.getLoginUser(request);
+
+
+        long biModelId = 1832611283091316738L;
+
+        // 构造用户输入
+        StringBuilder userInput = new StringBuilder();
+        userInput.append("分析需求：").append("\n");
+
+        // 拼接分析目标
+        String userGoal = goal;
+        // 如果图表类型不为空
+        if (StringUtils.isNotBlank(chartType)) {
+            // 就将分析目标拼接上“请使用”+图表类型
+            userGoal += "，请使用" + chartType;
+        }
+        userInput.append(userGoal).append("\n");
+        userInput.append("原始数据：").append("\n");
+        // 压缩后的数据（把multipartFile传进来）
+        String csvData = ExcelUtils.excelToCsv(multipartFile);
+        userInput.append(csvData).append("\n");
+
+
+        // 拿到返回结果
+        String result = aiManager.doChat(biModelId,userInput.toString());
+        // 对返回结果做拆分,按照5个中括号进行拆分
+        String[] splits = result.split("【【【【【");
+        // 拆分之后还要进行校验
+        if (splits.length < 3) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"AI 生成错误");
+        }
+
+        String genChart = splits[1].trim();
+        String genResult = splits[2].trim();
+        // 插入到数据库
+        Chart chart = new Chart();
+        chart.setName(name);
+        chart.setGoal(goal);
+        chart.setChartData(csvData);
+        chart.setChartType(chartType);
+        chart.setGenChart(genChart);
+        chart.setGenResult(genResult);
+        chart.setUserId(loginUser.getId());
+        boolean saveResult = chartService.save(chart);
+        ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
+        BiResponse biResponse = new BiResponse();
+        biResponse.setGenChart(genChart);
+        biResponse.setGenResult(genResult);
+        biResponse.setChartId(chart.getId());
+        return ResultUtils.success(biResponse);
+
+
+
+
 
 
 //
