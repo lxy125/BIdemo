@@ -5,9 +5,17 @@ export default [
     routes: [
       { path: '/user/login', component: './User/Login' },
       { path: '/user/register', component: './User/Register' },
+
+
     ],
   },
-  { path: '/welcome', icon: 'smile', component: './Welcome', name: '欢迎页' },
+
+
+  { path: '/',redirect: '/add_chart'},
+  { path: '/add_chart', component: './AddChart' },
+
+
+
   {
     path: '/admin',
     icon: 'crown',
