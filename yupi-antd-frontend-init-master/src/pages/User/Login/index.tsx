@@ -73,8 +73,8 @@ const Login: React.FC = () => {
             maxWidth: '75vw',
           }}
           logo={<img alt="logo" style={{ height: '100%' }} src="/logo.svg" />}
-          title="鱼皮前端万用模板"
-          subTitle={'快速开发属于自己的前端项目'}
+          title="基于讯飞星火的BI分析平台"
+          subTitle={'LXY'}
           initialValues={{
             autoLogin: true,
           }}

@@ -7,7 +7,7 @@ import { AvatarDropdown } from './components/RightContent/AvatarDropdown';
 import { requestConfig } from './requestConfig';
 
 const loginPath = '/user/login';
-
+const logo = '/1.svg';
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
  * */
@@ -40,6 +40,7 @@ export async function getInitialState(): Promise<InitialState> {
 // @ts-ignore
 export const layout: RunTimeLayoutConfig = ({ initialState }) => {
   return {
+    logo:logo,
     avatarProps: {
       render: () => {
         return <AvatarDropdown />;
