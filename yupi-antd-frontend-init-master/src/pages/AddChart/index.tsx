@@ -72,9 +72,13 @@ const AddChart: React.FC = () => {
                 { value: '饼图', label: '饼图' },
                 { value: '雷达图', label: '雷达图' },
               ]}
-              placeholder="请选择图表类型"
+              placeholder="请选择或输入图表类型"
+              showSearch
+              allowClear
+              mode="combobox"
             />
           </Form.Item>
+
 
           <Form.Item name="file" label="原始数据">
             <Upload name="file" showUploadList={true}>
