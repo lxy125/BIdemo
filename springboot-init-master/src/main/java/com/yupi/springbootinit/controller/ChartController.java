@@ -11,6 +11,7 @@ import com.yupi.springbootinit.constant.CommonConstant;
 import com.yupi.springbootinit.constant.UserConstant;
 import com.yupi.springbootinit.exception.BusinessException;
 import com.yupi.springbootinit.exception.ThrowUtils;
+import com.yupi.springbootinit.manager.XinghuoManager;
 import com.yupi.springbootinit.model.dto.chart.*;
 import com.yupi.springbootinit.model.entity.Chart;
 import com.yupi.springbootinit.model.entity.User;
@@ -49,6 +50,9 @@ public class ChartController {
 
     @Resource
     private AiManager aiManager;
+
+    @Resource
+    private XinghuoManager xinghuoManager ;
 
     // region 增删改查
 
@@ -334,6 +338,18 @@ public class ChartController {
 
         // 构造用户输入
         StringBuilder userInput = new StringBuilder();
+        String PRECONDITION = "你是一个数据分析师和前端开发专家，接下来我会按照以下固定格式给你提供内容：\n" +
+                "分析需求：\n" +
+                "{数据分析的需求或者目标}\n" +
+                "原始数据：\n" +
+                "{csv格式的原始数据，用,作为分隔符}\n" +
+                "请根据这两部分内容，严格按照以下指定格式生成内容（此外不要输出任何多余的开头、结尾、注释）\n" +
+                "【【【【【\n" +
+                "{前端 Echarts V5 的 option 配置对象 JSON 代码, 不要生成任何多余的内容，比如注释和代码块标记}\n" +
+                "【【【【【\n" +
+                "{明确的数据分析结论、越详细越好，不要生成多余的注释} \n" +
+                "最终格式是: 【【【【【 前端代码【【【【【分析结论 \n";
+        userInput.append(PRECONDITION).append("\n");
         userInput.append("分析需求：").append("\n");
 
         // 拼接分析目标
@@ -351,7 +367,8 @@ public class ChartController {
 
 
         // 拿到返回结果
-        String result = aiManager.doChat(biModelId,userInput.toString());
+        //String result = aiManager.doChat(biModelId,userInput.toString());
+        String result = xinghuoManager.sendMesToAIUseXingHuo(userInput.toString());
         // 对返回结果做拆分,按照5个中括号进行拆分
         String[] splits = result.split("【【【【【");
         // 拆分之后还要进行校验
