@@ -12,7 +12,9 @@ export default [
 
 
   { path: '/',redirect: '/add_chart'},
-  { path: '/add_chart', component: './AddChart' },
+  { name:'智能分析',icon:'barChart',path: '/add_chart', component: './AddChart' },
+  { name:'我的图表',path: '/my_chart', icon:'pieChart',component: './MyChart' },
+
 
 
 
